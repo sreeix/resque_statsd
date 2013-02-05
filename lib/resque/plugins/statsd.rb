@@ -3,7 +3,7 @@ module Resque
     module Statsd
       DEFAULT_TASKS = {
         :hostname => Proc.new{ @stat_hostname ||= `hostname`.strip},
-        :classname => Proc.new {self.class},
+        :classname => Proc.new {self},
         :queuename => Proc.new {|args| @queue}
       }
       def statsd
@@ -23,9 +23,7 @@ module Resque
         statsd.timing("duration:#{self}", time_taken)
         statsd.increment("total_successful:#{self}")
         statsd.increment("total_successful")
-        if extra_stats_key
-          Array(extra_stats_key[:around_perform]).each { |item| statsd.timing("duration:#{DEFAULT_TASKS[item].call(args)}", time_taken)}
-        end
+        Array(extra_stats_key[:around_perform]).each { |item| statsd.timing("duration:#{DEFAULT_TASKS[item].call(args)}", time_taken)}
       end
 
       def on_failure_stats(*args)
@@ -40,9 +38,9 @@ module Resque
 
       def after_dequeue_stats(*args)
         statsd.increment("total_dequeues")
-        statsd.increment("total_dequeues:#{self.class}")
+        statsd.increment("total_dequeues:#{self}")
       end
-      
+
       def extra_stats_key
         @extra_stats_key ||= {}
       end
