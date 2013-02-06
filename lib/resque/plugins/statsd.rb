@@ -23,26 +23,39 @@ module Resque
         statsd.timing("duration:#{self}", time_taken)
         statsd.increment("total_successful:#{self}")
         statsd.increment("total_successful")
-        Array(extra_stats_key[:around_perform]).each { |item| statsd.timing("duration:#{DEFAULT_TASKS[item].call(args)}", time_taken)}
+        run_hooks(:duration, :duration)
       end
 
       def on_failure_stats(*args)
         statsd.increment("total_resque_failures")
         statsd.increment("total_resque_failures:#{self}")
+        run_hooks(:failure, :total_resque_failures)
       end
 
       def after_enqueue_stats(*args)
-        statsd.increment("total_enqueues")
-        statsd.increment("total_enqueues:#{self}")
+        statsd.increment("total_resque_enqueues")
+        statsd.increment("total_resque_enqueues:#{self}")
+        run_hooks(:enqueue, :total_enqueues)
       end
 
       def after_dequeue_stats(*args)
-        statsd.increment("total_dequeues")
-        statsd.increment("total_dequeues:#{self}")
+        statsd.increment("total__resque_dequeues")
+        statsd.increment("total__resque_dequeues:#{self}")
+        run_hooks(:dequeue, :total_dequeues)
       end
 
       def extra_stats_key
         @extra_stats_key ||= {}
+      end
+
+      def run_hooks(type, key)
+        Array(extra_stats_key[type]).each do |item|
+          begin
+            statsd.timing("#{key}:#{DEFAULT_TASKS[item].call(args)}", time_taken)
+          rescue
+            puts "#{$!}" # Don't throw up if bad stuff happened, like the proc not being there.
+          end
+        end
       end
     end
   end
