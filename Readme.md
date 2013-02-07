@@ -16,6 +16,8 @@ add the following to your resque workers
 
 `extend Resque::Plugins::Statsd`
 
+By default this would send it to the statsd that has been configured.
+
 This will by default do the following
 
 * total_resque_failures

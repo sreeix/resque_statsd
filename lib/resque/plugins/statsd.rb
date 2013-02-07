@@ -1,3 +1,4 @@
+require File.expand_path('../../hook', __FILE__)
 module Resque
   module Plugins
     module Statsd
