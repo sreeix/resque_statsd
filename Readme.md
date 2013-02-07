@@ -43,7 +43,6 @@ Following default tasks are available
 * hostname  - Name of the machine on which the task was executed
 * classname - The default. Name of the worker that was executed.
 
-
 More Customizations
 =======
 
