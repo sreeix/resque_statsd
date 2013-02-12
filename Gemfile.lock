@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    resque_statsd (0.1.0)
+    resque_statsd (0.1.2)
       resque
       statsd
 
