@@ -50,9 +50,9 @@ module Resque
       end
 
       def run_hooks(type, key)
-        Array(extra_stats_key[type]).each do |item|
+        Array(extra_stats_key[type.to_s]).each do |item|
           begin
-            statsd.timing("#{key}:#{DEFAULT_TASKS[item].call(args)}", time_taken)
+            statsd.timing("#{key}:#{DEFAULT_TASKS[item.to_s].call(args)}", time_taken)
           rescue
             puts "#{$!}" # Don't throw up if bad stuff happened, like the proc not being there.
           end
