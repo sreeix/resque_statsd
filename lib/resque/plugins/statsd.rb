@@ -24,38 +24,42 @@ module Resque
         statsd.timing("duration:#{self}", time_taken)
         statsd.increment("total_successful:#{self}")
         statsd.increment("total_successful")
-        run_hooks(:duration, :duration)
+        run_hooks(:duration, :duration, args) {|key| statsd.timing(key, time_taken)}
       end
 
       def on_failure_stats(*args)
         statsd.increment("total_resque_failures")
         statsd.increment("total_resque_failures:#{self}")
-        run_hooks(:failure, :total_resque_failures)
+        run_hooks(:failure, :total_resque_failures, args){|key| statsd.increment(key)}
       end
 
       def after_enqueue_stats(*args)
         statsd.increment("total_resque_enqueues")
         statsd.increment("total_resque_enqueues:#{self}")
-        run_hooks(:enqueue, :total_enqueues)
+        run_hooks(:enqueue, :total_enqueues, args){|key| statsd.increment(key)}
       end
 
       def after_dequeue_stats(*args)
         statsd.increment("total__resque_dequeues")
         statsd.increment("total__resque_dequeues:#{self}")
-        run_hooks(:dequeue, :total_dequeues)
+        run_hooks(:dequeue, :total_dequeues, args) {|key| statsd.increment(key)}
       end
 
       def extra_stats_key
         @extra_stats_key ||= {}
       end
 
-      def run_hooks(type, key)
-        Array(extra_stats_key[type.to_s]).each do |item|
+      def run_hooks(type, key, args = nil)
+        Array(extra_stats_key[type]).each do |item|
           begin
-            statsd.timing("#{key}:#{DEFAULT_TASKS[item.to_s].call(args)}", time_taken)
+            res = "#{key}:#{Resque::Plugins::Statsd::DEFAULT_TASKS[item].call(args)}"
+            puts "**********************************************"
+            puts res
+            puts "**********************************************"
           rescue
             puts "#{$!}" # Don't throw up if bad stuff happened, like the proc not being there.
           end
+          yield(res)  if res
         end
       end
     end
